@@ -1,0 +1,38 @@
+@import 'tailwindcss';
+
+@custom-variant dark (&:where(.dark, .dark *));
+
+/* Design tokens from Figma "Atoms" (dark) */
+@theme {
+  --font-sans: 'Geist', 'Inter', ui-sans-serif, system-ui, sans-serif;
+
+  --color-canvas: #0c0912;
+  --color-raised: #14121a;
+  --color-border: #2e2e32;
+  --color-border-strong: #3b3440;
+  --color-muted: #98989f;
+  --color-subtle: #867e8e;
+  --color-primary: #6c3bff;
+  --color-primary-hover: #5c32d9;
+  --color-info: #3e63dd;
+  --color-success: #298459;
+  --color-warning: #a46a0a;
+  --color-danger: #f14158;
+}
+
+html,
+body,
+#app {
+  min-height: 100%;
+}
+
+body {
+  background: var(--color-canvas);
+  color: #fff;
+  font-family: var(--font-sans);
+}
+
+.icon {
+  width: 1em;
+  height: 1em;
+}
