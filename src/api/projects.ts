@@ -38,6 +38,22 @@ export const projectsApi = {
       query: { ...params },
       signal,
     }),
+
+  /** One media item with its EXIF block. */
+  mediaDetail: (mediaId: string, signal?: AbortSignal) =>
+    request<MediaDetail>(`/media/${encodeURIComponent(mediaId)}`, { signal }),
+
+  /** Records the client's review. 409 while any file is still pending. */
+  submitReview: (projectId: string, note: string, signal?: AbortSignal) =>
+    request<{
+      projectId: string
+      summary: { pending: number; rejected: number }
+      submittedAt: string
+    }>(`/projects/${encodeURIComponent(projectId)}/review`, {
+      method: 'POST',
+      body: { note },
+      signal,
+    }),
 }
 
 export type MediaType = 'photo' | 'video' | 'audio'
@@ -79,6 +95,26 @@ export interface MediaItem {
   status: MediaStatus
   type: MediaType
   metadata: { resolution?: string; aspectRatio?: string }
+  /** ISO time the file was added */
+  createdAt?: string
+  version?: number
+  sizeBytes?: number | null
+  /** Video length in seconds */
+  durationSec?: number | null
+  uploadedBy?: string | null
+}
+
+export interface MediaExif {
+  camera?: string
+  lens?: string
+  shutter?: string
+  iso?: number
+  colorProfile?: string
+  location?: string
+}
+
+export interface MediaDetail extends MediaItem {
+  exif: MediaExif | null
 }
 
 export interface MediaList {

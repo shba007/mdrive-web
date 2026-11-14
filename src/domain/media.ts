@@ -96,6 +96,11 @@ export function reviewTotals(summary: ProjectDetail['mediaSummary']): ReviewTota
   return { approved: counts.approved, rejected: counts.rejected, pending: counts.pending }
 }
 
+/** Adds the id when absent, removes it when present. */
+export function toggleId(ids: readonly string[], id: string): string[] {
+  return ids.includes(id) ? ids.filter((i) => i !== id) : [...ids, id]
+}
+
 /** "3 files · go to release" style label. */
 export function fileCount(n: number): string {
   return `${n} ${n === 1 ? 'file' : 'files'}`

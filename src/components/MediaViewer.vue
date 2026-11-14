@@ -4,6 +4,15 @@ import type { MediaItem } from '@/api/projects'
 import { useComments } from '@/composables/useComments'
 import { initial, nextZoom, timeAgo, toPercent, ZOOM_MAX, ZOOM_MIN } from '@/domain/comments'
 import type { ReviewDecision } from '@/api/media'
+import RejectDialog from '@/components/RejectDialog.vue'
+import IconCheck from '~icons/lucide/check'
+import IconChevronLeft from '~icons/lucide/chevron-left'
+import IconChevronRight from '~icons/lucide/chevron-right'
+import IconDownload from '~icons/lucide/download'
+import IconMaximize from '~icons/lucide/maximize'
+import IconX from '~icons/lucide/x'
+import IconZoomIn from '~icons/lucide/zoom-in'
+import IconZoomOut from '~icons/lucide/zoom-out'
 import {
   canDownload,
   canReview,
@@ -32,12 +41,14 @@ const pending = ref<{ x: number; y: number } | null>(null)
 const draft = ref('')
 const replyTo = ref<string | null>(null)
 const replyDraft = ref('')
+const rejectOpen = ref(false)
 
 watch(currentId, () => {
   zoom.value = 1
   pending.value = null
   draft.value = ''
   replyTo.value = null
+  rejectOpen.value = false
 })
 
 const pins = computed(() => comments.value.filter((c) => c.coordinates))
@@ -56,7 +67,22 @@ const toneClass = computed(() =>
 const extension = computed(() => current.value?.filename.split('.').pop()?.toUpperCase() ?? '')
 
 function decide(decision: 'approved' | 'rejected') {
-  if (current.value) emit('decide', current.value.id, nextStatus(current.value.status, decision))
+  if (!current.value) return
+  // A new rejection needs a reason; undoing one goes straight back to pending.
+  if (decision === 'rejected' && current.value.status !== 'rejected') {
+    rejectOpen.value = true
+    return
+  }
+  emit('decide', current.value.id, nextStatus(current.value.status, decision))
+}
+
+/** Posts the reason as a comment so the team sees it, then rejects the file. */
+async function submitRejection(reason: string) {
+  if (!current.value) return
+  if (await post(reason)) {
+    rejectOpen.value = false
+    emit('decide', current.value.id, 'rejected')
+  }
 }
 
 function go(step: 1 | -1) {
@@ -114,8 +140,12 @@ onBeforeUnmount(() => {
     :aria-label="current.filename"
   >
     <div class="flex items-center justify-between px-5 py-4 text-sm">
-      <button type="button" class="cursor-pointer hover:text-muted" @click="emit('close')">
-        ✕ Close
+      <button
+        type="button"
+        class="flex cursor-pointer items-center gap-2 hover:text-muted"
+        @click="emit('close')"
+      >
+        <IconX aria-hidden="true" /> Close
       </button>
       <span class="text-muted">{{ projectName }} · {{ index + 1 }} / {{ items.length }}</span>
     </div>
@@ -183,7 +213,7 @@ onBeforeUnmount(() => {
               aria-label="Previous"
               @click="go(-1)"
             >
-              ‹
+              <IconChevronLeft aria-hidden="true" />
             </button>
             <button
               type="button"
@@ -192,7 +222,7 @@ onBeforeUnmount(() => {
               aria-label="Next"
               @click="go(1)"
             >
-              ›
+              <IconChevronRight aria-hidden="true" />
             </button>
             <span class="mx-1 h-4 w-px bg-border" />
             <button
@@ -202,7 +232,7 @@ onBeforeUnmount(() => {
               aria-label="Zoom out"
               @click="zoom = nextZoom(zoom, -1)"
             >
-              −
+              <IconZoomOut aria-hidden="true" />
             </button>
             <button
               type="button"
@@ -211,15 +241,16 @@ onBeforeUnmount(() => {
               aria-label="Zoom in"
               @click="zoom = nextZoom(zoom, 1)"
             >
-              +
+              <IconZoomIn aria-hidden="true" />
             </button>
             <button
               type="button"
-              class="cursor-pointer px-2 text-xs hover:text-muted"
+              class="cursor-pointer px-2 hover:text-muted"
               aria-label="Fit to screen"
+              title="Fit to screen"
               @click="zoom = 1"
             >
-              Fit
+              <IconMaximize aria-hidden="true" />
             </button>
             <span class="mx-1 h-4 w-px bg-border" />
             <button
@@ -230,7 +261,7 @@ onBeforeUnmount(() => {
               aria-label="Download"
               @click="emit('download', current.id)"
             >
-              ↓
+              <IconDownload aria-hidden="true" />
             </button>
             <template v-if="canReview(current.status)">
               <button
@@ -241,7 +272,7 @@ onBeforeUnmount(() => {
                 aria-label="Not approved"
                 @click="decide('rejected')"
               >
-                ✕
+                <IconX aria-hidden="true" />
               </button>
               <button
                 type="button"
@@ -255,7 +286,7 @@ onBeforeUnmount(() => {
                 aria-label="Approve"
                 @click="decide('approved')"
               >
-                ✓
+                <IconCheck aria-hidden="true" />
               </button>
             </template>
           </div>
@@ -384,5 +415,13 @@ onBeforeUnmount(() => {
         </form>
       </aside>
     </div>
+    <RejectDialog
+      :open="rejectOpen"
+      :filename="current.filename"
+      :posting="posting"
+      :error="error"
+      @close="rejectOpen = false"
+      @submit="submitRejection"
+    />
   </div>
 </template>

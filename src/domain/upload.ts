@@ -1,6 +1,6 @@
 export const MAX_FILE_BYTES = 4 * 1024 ** 3
 export const ACCEPT = 'image/jpeg,image/png,video/mp4,video/quicktime'
-export const ACCEPTED_LABEL = 'JPG, PNG, MP4, MOV · 4 GB max each'
+export const ACCEPTED_LABEL = 'JPG, PNG, MP4, MOV · 4 GB each'
 
 const ALLOWED = new Set(['image/jpeg', 'image/png', 'video/mp4', 'video/quicktime'])
 const EXT_MIME: Record<string, string> = {

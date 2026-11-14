@@ -8,6 +8,7 @@ import {
   mediaStatusTone,
   nextStatus,
   reviewCounts,
+  toggleId,
 } from '../media'
 
 const approval = (o: Partial<Record<string, number>> = {}) => ({
@@ -62,5 +63,15 @@ describe('media domain', () => {
     expect(mediaStatusTone('rejected')).toBe('danger')
     expect(mediaStatusTone('approved')).toBe('success')
     expect(mediaStatusTone('release')).toBe('info')
+  })
+})
+
+describe('toggleId', () => {
+  it('adds an id that is not selected', () => {
+    expect(toggleId(['a'], 'b')).toEqual(['a', 'b'])
+  })
+
+  it('removes an id that is already selected', () => {
+    expect(toggleId(['a', 'b'], 'a')).toEqual(['b'])
   })
 })

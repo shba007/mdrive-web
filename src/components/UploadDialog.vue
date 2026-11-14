@@ -2,6 +2,10 @@
 import { computed, ref, toRef, watch } from 'vue'
 import { useUploader, type UploadEntry } from '@/composables/useUploader'
 import { ACCEPT, ACCEPTED_LABEL, formatBytes } from '@/domain/upload'
+import IconCloudUpload from '~icons/lucide/cloud-upload'
+import IconFilm from '~icons/lucide/film'
+import IconImage from '~icons/lucide/image'
+import IconX from '~icons/lucide/x'
 
 const props = defineProps<{ open: boolean; projectId: string; projectName: string }>()
 const emit = defineEmits<{ close: []; uploaded: [] }>()
@@ -17,7 +21,7 @@ const primaryLabel = computed(() => {
   if (running.value) return 'Uploading…'
   if (pending.value.length) return `Upload ${pending.value.length}`
   if (hasFailed.value) return 'Retry failed'
-  return finished.value ? 'Done' : 'Upload'
+  return finished.value ? 'Continue' : 'Upload'
 })
 const primaryDisabled = computed(
   () => running.value || (!pending.value.length && !hasFailed.value && !finished.value),
@@ -99,7 +103,7 @@ watch(
             aria-label="Close"
             @click="close"
           >
-            ✕
+            <IconX aria-hidden="true" />
           </button>
         </div>
 
@@ -111,6 +115,7 @@ watch(
             @dragleave="dragging = false"
             @drop.prevent="onDrop"
           >
+            <IconCloudUpload class="size-6 text-muted" aria-hidden="true" />
             <p class="text-sm font-medium">Drag and drop media to upload</p>
             <p class="text-xs text-muted">or, click to browse ({{ ACCEPTED_LABEL }})</p>
             <button
@@ -142,6 +147,11 @@ watch(
               class="space-y-1.5 rounded-lg border border-border px-4 py-3"
             >
               <div class="flex items-center gap-3">
+                <component
+                  :is="entry.file.type.startsWith('video') ? IconFilm : IconImage"
+                  class="shrink-0 text-muted"
+                  aria-hidden="true"
+                />
                 <span class="min-w-0 flex-1 truncate text-sm">{{ entry.file.name }}</span>
                 <span class="text-xs text-muted">{{ formatBytes(entry.file.size) }}</span>
                 <span

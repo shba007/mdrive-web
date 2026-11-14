@@ -5,9 +5,19 @@ import MediaViewer from '@/components/MediaViewer.vue'
 import AppHeader from '@/components/AppHeader.vue'
 import MediaTile from '@/components/MediaTile.vue'
 import UploadDialog from '@/components/UploadDialog.vue'
+import { projectsApi } from '@/api/projects'
 import { useProjectMedia } from '@/composables/useProjectMedia'
 import ReviewDialog from '@/components/ReviewDialog.vue'
-import { REVIEW_TABS, formatProjectLine, reviewTotals, type ReviewStatus } from '@/domain/media'
+import IconChevronLeft from '~icons/lucide/chevron-left'
+import SelectionBar from '@/components/SelectionBar.vue'
+import {
+  REVIEW_TABS,
+  canDownload,
+  formatProjectLine,
+  reviewTotals,
+  toggleId,
+  type ReviewStatus,
+} from '@/domain/media'
 
 const route = useRoute()
 const router = useRouter()
@@ -39,6 +49,17 @@ const {
   ensureLoaded,
 } = useProjectMedia(projectId)
 
+const selected = ref<string[]>([])
+/** Only released media can be selected, and only while it is still in the list. */
+const selectedIds = computed(() =>
+  selected.value.filter((id) => items.value.some((i) => i.id === id && canDownload(i.status))),
+)
+
+async function downloadSelected() {
+  await download(selectedIds.value)
+  selected.value = []
+}
+
 const reviewOpen = ref(false)
 const notice = ref<string | null>(null)
 const totals = computed(() =>
@@ -47,13 +68,16 @@ const totals = computed(() =>
     : { approved: 0, rejected: 0, pending: 0 },
 )
 
-/**
- * MOCK: the API has no endpoint for submitting a review or for a team note yet.
- * Decisions are already saved per file; this only closes the dialog.
- */
-function submitReview() {
+/** Decisions are saved per file already; this sends the note and checks nothing is pending. */
+async function submitReview(note: string) {
   reviewOpen.value = false
-  notice.value = 'Review noted. Sending it to the team is not connected yet.'
+  notice.value = null
+  try {
+    await projectsApi.submitReview(projectId.value, note)
+    notice.value = 'Review sent to the team.'
+  } catch (e) {
+    actionError.value = e instanceof Error ? e.message : 'Could not submit the review.'
+  }
 }
 
 onMounted(async () => {
@@ -74,8 +98,11 @@ function toggleTab(next: ReviewStatus) {
 
     <main class="space-y-5 px-6 pb-12">
       <div>
-        <RouterLink to="/projects" class="text-sm text-muted hover:text-white">
-          ‹ Projects
+        <RouterLink
+          to="/projects"
+          class="inline-flex items-center gap-1 text-sm text-muted hover:text-white"
+        >
+          <IconChevronLeft aria-hidden="true" /> Projects
         </RouterLink>
         <h1 class="text-2xl font-semibold">{{ project?.name ?? '…' }}</h1>
         <p v-if="project" class="text-xs text-muted">
@@ -161,6 +188,9 @@ function toggleTab(next: ReviewStatus) {
           v-for="item in items"
           :key="item.id"
           :item="item"
+          :selected="selectedIds.includes(item.id)"
+          :selecting="selectedIds.length > 0"
+          @toggle="(id) => (selected = toggleId(selected, id))"
           @open="openMedia"
           @download="(id) => download([id])"
         />
@@ -188,6 +218,8 @@ function toggleTab(next: ReviewStatus) {
       @decide="setStatus"
       @download="(id) => download([id])"
     />
+
+    <SelectionBar :count="selectedIds.length" @clear="selected = []" @download="downloadSelected" />
 
     <ReviewDialog
       :open="reviewOpen"

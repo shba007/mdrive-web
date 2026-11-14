@@ -1,10 +1,12 @@
 <script setup lang="ts">
 import { computed } from 'vue'
 import type { MediaItem } from '@/api/projects'
+import IconCheck from '~icons/lucide/check'
+import IconDownload from '~icons/lucide/download'
 import { canDownload, cssAspectRatio, mediaStatusLabel, mediaStatusTone } from '@/domain/media'
 
-const props = defineProps<{ item: MediaItem }>()
-const emit = defineEmits<{ open: [id: string]; download: [id: string] }>()
+const props = defineProps<{ item: MediaItem; selected?: boolean; selecting?: boolean }>()
+const emit = defineEmits<{ open: [id: string]; download: [id: string]; toggle: [id: string] }>()
 
 const toneClass = computed(
   () =>
@@ -19,7 +21,8 @@ const toneClass = computed(
 
 <template>
   <article
-    class="relative mb-4 cursor-pointer break-inside-avoid overflow-hidden rounded-xl border border-border bg-raised transition-colors hover:border-border-strong"
+    class="group relative mb-4 cursor-pointer break-inside-avoid overflow-hidden rounded-xl border bg-raised transition-colors"
+    :class="selected ? 'border-primary' : 'border-border hover:border-border-strong'"
   >
     <button
       type="button"
@@ -57,6 +60,22 @@ const toneClass = computed(
       </div>
     </button>
     <button
+      v-if="canDownload(item.status)"
+      type="button"
+      class="absolute top-11 left-2 grid size-6 cursor-pointer place-items-center rounded-full border"
+      :class="[
+        selected ? 'border-primary bg-primary text-white' : 'border-white/70 bg-black/50',
+        selected || selecting
+          ? 'opacity-100'
+          : 'opacity-0 group-hover:opacity-100 focus-visible:opacity-100',
+      ]"
+      :aria-pressed="!!selected"
+      :aria-label="`${selected ? 'Deselect' : 'Select'} ${item.filename}`"
+      @click="emit('toggle', item.id)"
+    >
+      <IconCheck v-if="selected" aria-hidden="true" />
+    </button>
+    <button
       type="button"
       class="absolute right-2 bottom-2 grid size-8 cursor-pointer place-items-center rounded-md border border-border hover:bg-canvas disabled:cursor-not-allowed disabled:opacity-30"
       :disabled="!canDownload(item.status)"
@@ -64,7 +83,7 @@ const toneClass = computed(
       :aria-label="`Download ${item.filename}`"
       @click="emit('download', item.id)"
     >
-      ↓
+      <IconDownload aria-hidden="true" />
     </button>
   </article>
 </template>
