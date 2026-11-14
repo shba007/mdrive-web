@@ -6,14 +6,19 @@ Design source: Figma file "Modest Human Brands", page "Desktop - MDrive".
 
 ## Screens
 
-| Route                           | Screen                                                                                                        |
-| ------------------------------- | ------------------------------------------------------------------------------------------------------------- |
-| `/access`                       | Organization ID, user ID and API key. Stored only in this browser (localStorage).                             |
-| `/projects`                     | Projects grid with search and status filter (Shoot, Edit, Delivered).                                         |
-| `/projects/:projectId`          | Media grid (uploader, duration, version in the tile footer), review tabs, sort, upload dialog, Submit review. |
-| `/projects/:projectId?media=ID` | Full-screen viewer: filmstrip, zoom, pinned comments, file details and EXIF, approve/reject, download.        |
+| Route                                        | Screen                                                                                                                  |
+| -------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------- |
+| `/` (first run)                              | Redirects to `/setup` until setup is finished (flag `mdrive:setup` in localStorage), then to `/projects`.               |
+| `/setup`                                     | Setup step 1 of 3: organization ID, user ID and API key. Stored only in this browser (localStorage).                    |
+| `/setup/storage`                             | Step 2: move your media. Pick a source and a different destination (R2, S3, Google Drive, this computer), or skip.      |
+| `/setup/storage/scope`, `/review`, `/moving` | What to move, review and start, progress. **Mocked**: no migration API exists yet, the run is simulated in the browser. |
+| `/setup/done`                                | Step 3: done, marks setup finished and opens the projects.                                                              |
+| `/access`                                    | Same form as setup step 1, used to reconnect (for example after a 401).                                                 |
+| `/projects`                                  | Projects grid with search and status filter (Shoot, Edit, Delivered).                                                   |
+| `/projects/:projectId`                       | Media grid (uploader, duration, version in the tile footer), review tabs, sort, upload dialog, Submit review.           |
+| `/projects/:projectId?media=ID`              | Full-screen viewer: filmstrip, zoom, pinned comments, file details and EXIF, approve/reject, download.                  |
 
-If the API answers 401/403 the app returns to `/access` and asks for the details again.
+If the API answers 401/403 the app returns to `/access` and asks for the details again. Setup steps after the first need saved access details; the review and moving steps need a valid source and destination, otherwise they go back to `/setup/storage`. To see setup again, clear the `mdrive:setup` key in localStorage.
 
 ## Getting started
 

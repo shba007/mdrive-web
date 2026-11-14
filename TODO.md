@@ -1,6 +1,6 @@
 # TODO
 
-Design source: Figma "Modest Human Brands" > "Desktop - MDrive" (sections: Access, Browse, Upload, Review, Release, Storage). Last compared with the code on 2026-11-14; backend sync (review, media detail, file facts) and the dev proxy port fix added after that.
+Design source: Figma "Modest Human Brands" > "Desktop - MDrive" (sections: Setup (connect, then move your media), Browse, Upload, Review, Release). Last compared with the code on 2026-11-14; backend sync (review, media detail, file facts) and the dev proxy port fix added after that.
 
 ## Done
 
@@ -18,6 +18,10 @@ Design source: Figma "Modest Human Brands" > "Desktop - MDrive" (sections: Acces
 - [x] Upload dialog polish: dropzone icon, per-file icon, "4 GB each" hint, Continue when finished
 - [x] Reject dialog: a reason is required; it is posted as a comment, then the status becomes rejected (undoing a rejection skips the dialog)
 - [x] Multi-select on released tiles with the bottom bar (N selected, Clear, Download N files); no zip yet, so each file downloads separately
+
+## Cross-repo sync (see `docs/integration-audit.md`)
+
+- [ ] Upload pipeline between code-drive and code-media does not complete today (missing `x-api-key` on both directions, file-name and `mediaId` mismatch, photo dimensions, media URL pointing at code-media). Needs fixes in the other two repos (plans, not applied: `docs/patch-plan-mdrive.md`, `docs/patch-plan-mmedia.md`, including GPU-with-CPU-fallback in MMedia and Docker verification); this app needs no change
 
 ## Design vs code gaps: frontend only (existing API is enough)
 
@@ -46,4 +50,9 @@ Design source: Figma "Modest Human Brands" > "Desktop - MDrive" (sections: Acces
 
 ## Larger features designed but not started
 
-- [ ] Storage migration wizard: pick source and destination (Cloudflare R2, Amazon S3, Google Drive, this computer), choose what to move, destination check and integrity check, migrating progress, duplicates review (Compare, Duplicate Photo and Video), assign project for unassigned files, done state. Needs a migration API.
+- [x] First-run setup (Connect, Storage, Done) with the `onboarded` flag, like MConnect; `/access` kept for reconnecting
+- [x] Storage migration wizard UI, mocked (`src/api/migration.ts`): source and destination, what to move, review, moving progress, done. Figma frames renamed into "Setup" order
+- [ ] Migration wizard, real: needs a migration API (see `docs/api-contract-proposals.md`); destination check and integrity check, Verified and Failed counts, Pause, "Run in background"
+- [ ] Migration review steps: "Three things need you" screen, duplicates review (Compare, Duplicate Photo and Video), assign project for unassigned files, file names preview, "View migration log"
+- [ ] Setup design polish: the Storage frames use a three-tab header and the Access frame has no "Step 1 of 3" label, while the code uses one shared step shell; align the frames and the shell
+- [ ] Storage landing screen (Figma "Setup 2 of 3 · Storage"): list connected storages, Add storage, reachable after setup (today migration is only reachable during first-run setup)
