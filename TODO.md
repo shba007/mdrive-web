@@ -1,6 +1,6 @@
 # TODO
 
-Design source: Figma "Modest Human Brands" > "Desktop - MDrive" (sections: Access, Browse, Upload, Review, Release, Storage). Last compared with the code on 2026-11-14.
+Design source: Figma "Modest Human Brands" > "Desktop - MDrive" (sections: Access, Browse, Upload, Review, Release, Storage). Last compared with the code on 2026-11-14; backend sync (review, media detail, file facts) and the dev proxy port fix added after that.
 
 ## Done
 
@@ -13,7 +13,7 @@ Design source: Figma "Modest Human Brands" > "Desktop - MDrive" (sections: Acces
 - [x] Direct-to-storage batch file uploader dialog (progress, retry, cancel)
 - [x] Asset approval and rejection action triggers
 - [x] Presigned asset download handler (released files only)
-- [x] Submit review dialog (UI only, see "Needs API")
+- [x] Submit review dialog, sends the note to `POST /api/projects/:id/review`; Submit is disabled while files are still in review (the API answers 409)
 - [x] Lucide icons in the viewer toolbar, tiles, back link and upload dialog (replaces text glyphs)
 - [x] Upload dialog polish: dropzone icon, per-file icon, "4 GB each" hint, Continue when finished
 - [x] Reject dialog: a reason is required; it is posted as a comment, then the status becomes rejected (undoing a rejection skips the dialog)
@@ -34,8 +34,8 @@ Design source: Figma "Modest Human Brands" > "Desktop - MDrive" (sections: Acces
 
 - [x] Submit review endpoint `POST /api/projects/:id/review` (409 while pending; stores note and time in Notion "Review Note" and "Reviewed At") and dialog connected. Not yet run against real Notion
 - [ ] Release flow: request release, team "Review release" dialog with per-file hold back, approve release, undo release; media states Awaiting and Held back; team vs client role on the access details
-- [x] Media metadata API: `GET /api/media/:id` returns size, createdAt, uploader, EXIF (null until the media processor sends them to the upload webhook as `metadata.sizeBytes`, `durationSec`, `uploadedBy`, `exif`). Frontend: show it in the viewer panel (types and `projectsApi.mediaDetail` are ready)
-- [x] Tile footer data API: list items carry `createdAt`, `version`, `sizeBytes`, `durationSec`, `uploadedBy`. Frontend: render the tile footer
+- [x] Media metadata API: `GET /api/media/:id` returns size, createdAt, uploader, EXIF (null until the media processor sends them to the upload webhook as `metadata.sizeBytes`, `durationSec`, `uploadedBy`, `exif`). Frontend: the viewer panel loads it and lists size, created, uploader, version and EXIF rows when present
+- [x] Tile footer data API: list items carry `createdAt`, `version`, `sizeBytes`, `durationSec`, `uploadedBy`. Frontend: the tile footer shows uploader, video duration, version and resolution
 - [ ] Versions: history, compare view, "Upload new version" dialog with a change note, filmstrip "+" button
 - [ ] Video review: in-browser player with a timecoded scrub bar; comments need a `timecode` field
 - [ ] Media search and filter query params on `GET /api/projects/:projectId/media`

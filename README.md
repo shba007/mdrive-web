@@ -6,12 +6,12 @@ Design source: Figma file "Modest Human Brands", page "Desktop - MDrive".
 
 ## Screens
 
-| Route                           | Screen                                                                            |
-| ------------------------------- | --------------------------------------------------------------------------------- |
-| `/access`                       | Organization ID, user ID and API key. Stored only in this browser (localStorage). |
-| `/projects`                     | Projects grid with search and status filter (Shoot, Edit, Delivered).             |
-| `/projects/:projectId`          | Media grid with review tabs, sort, upload dialog and Submit review.               |
-| `/projects/:projectId?media=ID` | Full-screen viewer: filmstrip, zoom, pinned comments, approve/reject, download.   |
+| Route                           | Screen                                                                                                        |
+| ------------------------------- | ------------------------------------------------------------------------------------------------------------- |
+| `/access`                       | Organization ID, user ID and API key. Stored only in this browser (localStorage).                             |
+| `/projects`                     | Projects grid with search and status filter (Shoot, Edit, Delivered).                                         |
+| `/projects/:projectId`          | Media grid (uploader, duration, version in the tile footer), review tabs, sort, upload dialog, Submit review. |
+| `/projects/:projectId?media=ID` | Full-screen viewer: filmstrip, zoom, pinned comments, file details and EXIF, approve/reject, download.        |
 
 If the API answers 401/403 the app returns to `/access` and asks for the details again.
 
@@ -23,7 +23,7 @@ cp .env.example .env.local
 bun run dev   # http://localhost:5173, proxies /api and /media to VITE_MDRIVE_API_URL
 ```
 
-Run the MDrive API first (default `http://localhost:3003`).
+Run the MDrive API first (default `http://localhost:3004`).
 
 ## Scripts
 
@@ -40,7 +40,7 @@ The container serves the built app with nginx on port 8080 and reverse-proxies `
 
 ```bash
 bun run docker:build
-docker run -p 2000:8080 -e API_ORIGIN=http://host.docker.internal:3003 mdrive-web:dev
+docker run -p 2000:8080 -e API_ORIGIN=http://host.docker.internal:3004 mdrive-web:dev
 ```
 
 Unknown paths fall back to `index.html`, so deep links work.
@@ -52,6 +52,7 @@ Unknown paths fall back to `index.html`, so deep links work.
 
 ## Not connected yet (mocked or omitted)
 
-- Submit review only closes the dialog; the API has no endpoint for submitting a review or a team note.
-- Not built: bulk move/delete (endpoints exist, no design), creating projects, media search, video playback, camera/lens metadata.
+- Submit review needs the "Review Note" (text) and "Reviewed At" (date) columns on the Notion Projects database, and has not been run against real Notion yet.
+- Camera, lens and other EXIF rows stay empty until the media processor sends `metadata.exif` to the upload webhook.
+- Not built: bulk move/delete (endpoints exist, no design), creating projects, media search, video playback.
 - Comments are posted with the role "Client" (`DEFAULT_AUTHOR_ROLE`).

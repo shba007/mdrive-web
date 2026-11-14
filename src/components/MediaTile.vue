@@ -3,7 +3,13 @@ import { computed } from 'vue'
 import type { MediaItem } from '@/api/projects'
 import IconCheck from '~icons/lucide/check'
 import IconDownload from '~icons/lucide/download'
-import { canDownload, cssAspectRatio, mediaStatusLabel, mediaStatusTone } from '@/domain/media'
+import {
+  canDownload,
+  cssAspectRatio,
+  formatDuration,
+  mediaStatusLabel,
+  mediaStatusTone,
+} from '@/domain/media'
 
 const props = defineProps<{ item: MediaItem; selected?: boolean; selecting?: boolean }>()
 const emit = defineEmits<{ open: [id: string]; download: [id: string]; toggle: [id: string] }>()
@@ -54,8 +60,16 @@ const toneClass = computed(
       </div>
       <div class="space-y-0.5 px-3 py-2.5 pr-12">
         <p class="truncate text-sm">{{ item.filename }}</p>
-        <p v-if="item.metadata.resolution" class="text-xs text-muted">
-          {{ item.metadata.resolution }}
+        <p class="flex flex-wrap items-center gap-x-2 gap-y-1 text-xs text-muted">
+          <span v-if="item.uploadedBy">{{ item.uploadedBy }}</span>
+          <span
+            v-if="formatDuration(item.durationSec)"
+            class="rounded-full bg-canvas px-2 py-0.5 text-white"
+          >
+            {{ formatDuration(item.durationSec) }}
+          </span>
+          <span v-if="(item.version ?? 1) > 1">v{{ item.version }}</span>
+          <span v-if="item.metadata.resolution">{{ item.metadata.resolution }}</span>
         </p>
       </div>
     </button>

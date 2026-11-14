@@ -1,6 +1,6 @@
 import { fileURLToPath, URL } from 'node:url'
 
-import { defineConfig, lazyPlugins } from 'vite-plus'
+import { defineConfig, lazyPlugins, loadEnv } from 'vite-plus'
 import vue from '@vitejs/plugin-vue'
 import vueDevTools from 'vite-plugin-vue-devtools'
 import tailwindcss from '@tailwindcss/vite'
@@ -8,6 +8,10 @@ import { VitePWA } from 'vite-plugin-pwa'
 import Icons from 'unplugin-icons/vite'
 
 // https://vite.dev/config/
+// Dev proxy target: VITE_MDRIVE_API_URL from .env/.env.local, else the API's default port.
+const apiTarget =
+  loadEnv('development', process.cwd(), 'VITE_').VITE_MDRIVE_API_URL || 'http://localhost:3004'
+
 export default defineConfig({
   staged: {
     '*': 'vp check --fix',
@@ -146,11 +150,11 @@ export default defineConfig({
   server: {
     proxy: {
       '/api': {
-        target: process.env.VITE_MDRIVE_API_URL || 'http://localhost:3003',
+        target: apiTarget,
         changeOrigin: true,
       },
       '/media': {
-        target: process.env.VITE_MDRIVE_API_URL || 'http://localhost:3003',
+        target: apiTarget,
         changeOrigin: true,
       },
     },

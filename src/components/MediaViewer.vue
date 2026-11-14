@@ -2,6 +2,7 @@
 import { computed, onBeforeUnmount, onMounted, ref, watch } from 'vue'
 import type { MediaItem } from '@/api/projects'
 import { useComments } from '@/composables/useComments'
+import { useMediaDetail } from '@/composables/useMediaDetail'
 import { initial, nextZoom, timeAgo, toPercent, ZOOM_MAX, ZOOM_MIN } from '@/domain/comments'
 import type { ReviewDecision } from '@/api/media'
 import RejectDialog from '@/components/RejectDialog.vue'
@@ -16,6 +17,7 @@ import IconZoomOut from '~icons/lucide/zoom-out'
 import {
   canDownload,
   canReview,
+  detailRows,
   mediaStatusLabel,
   mediaStatusTone,
   nextStatus,
@@ -64,7 +66,13 @@ const toneClass = computed(() =>
     : '',
 )
 
-const extension = computed(() => current.value?.filename.split('.').pop()?.toUpperCase() ?? '')
+const { detail } = useMediaDetail(currentId)
+
+/** The detail response (with EXIF) once loaded, else the list item. */
+const rows = computed(() => {
+  const source = detail.value?.id === currentId.value ? detail.value : current.value
+  return source ? detailRows({ ...source, status: current.value!.status }, timeAgo) : []
+})
 
 function decide(decision: 'approved' | 'rejected') {
   if (!current.value) return
@@ -309,21 +317,9 @@ onBeforeUnmount(() => {
           </div>
 
           <dl class="space-y-2 text-sm">
-            <div class="flex justify-between gap-4">
-              <dt class="text-muted">Type</dt>
-              <dd class="capitalize">{{ current.type }}</dd>
-            </div>
-            <div v-if="extension" class="flex justify-between gap-4">
-              <dt class="text-muted">Format</dt>
-              <dd>{{ extension }}</dd>
-            </div>
-            <div v-if="current.metadata.resolution" class="flex justify-between gap-4">
-              <dt class="text-muted">Resolution</dt>
-              <dd>{{ current.metadata.resolution }}</dd>
-            </div>
-            <div v-if="current.metadata.aspectRatio" class="flex justify-between gap-4">
-              <dt class="text-muted">Aspect ratio</dt>
-              <dd>{{ current.metadata.aspectRatio }}</dd>
+            <div v-for="row in rows" :key="row.label" class="flex justify-between gap-4">
+              <dt class="text-muted">{{ row.label }}</dt>
+              <dd class="text-right">{{ row.value }}</dd>
             </div>
           </dl>
 

@@ -29,7 +29,7 @@ ENV NODE_ENV=production
 ENV VUE_APP_VERSION=$VERSION
 ENV VUE_APP_BUILD_TIME=$BUILD_TIME
 # Origin of the MDrive API that /api and /media are proxied to (no trailing slash)
-ENV API_ORIGIN=http://host.docker.internal:3003
+ENV API_ORIGIN=http://host.docker.internal:3004
 
 EXPOSE 8080
 

@@ -59,13 +59,18 @@ const rows = [
           />
         </label>
 
+        <p v-if="totals.pending > 0" class="text-sm text-warning" role="status">
+          Approve or reject the {{ fileCount(totals.pending) }} still in review before submitting.
+        </p>
+
         <div class="flex items-center justify-end gap-3">
           <button type="button" class="cursor-pointer px-3 py-2 text-sm" @click="emit('close')">
             Cancel
           </button>
           <button
             type="submit"
-            class="cursor-pointer rounded-md bg-white px-4 py-2 text-sm font-medium text-canvas"
+            :disabled="totals.pending > 0"
+            class="cursor-pointer rounded-md bg-white px-4 py-2 text-sm font-medium text-canvas disabled:cursor-not-allowed disabled:opacity-40"
           >
             Submit review
           </button>

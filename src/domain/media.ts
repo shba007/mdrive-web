@@ -1,4 +1,11 @@
-import type { ApprovalCounts, MediaStatus, ProjectDetail } from '@/api/projects'
+import type {
+  ApprovalCounts,
+  MediaDetail,
+  MediaItem,
+  MediaStatus,
+  ProjectDetail,
+} from '@/api/projects'
+import { formatBytes } from '@/domain/upload'
 
 /** Review tabs from the design, mapped to API statuses. */
 export const REVIEW_TABS = [
@@ -104,6 +111,51 @@ export function toggleId(ids: readonly string[], id: string): string[] {
 /** "3 files · go to release" style label. */
 export function fileCount(n: number): string {
   return `${n} ${n === 1 ? 'file' : 'files'}`
+}
+
+/** Seconds as "1:09" or "1:02:03"; empty when unknown. */
+export function formatDuration(totalSeconds?: number | null): string {
+  if (!totalSeconds || totalSeconds <= 0 || !Number.isFinite(totalSeconds)) return ''
+  const s = Math.round(totalSeconds)
+  const h = Math.floor(s / 3600)
+  const m = Math.floor((s % 3600) / 60)
+  const sec = String(s % 60).padStart(2, '0')
+  return h > 0 ? `${h}:${String(m).padStart(2, '0')}:${sec}` : `${m}:${sec}`
+}
+
+export interface DetailRow {
+  label: string
+  value: string
+}
+
+/**
+ * Rows for the viewer panel. Only values the API actually has are listed,
+ * so missing EXIF (null until the media processor sends it) simply shows nothing.
+ */
+export function detailRows(
+  item: MediaDetail | MediaItem,
+  relativeTime: (iso: string) => string,
+): DetailRow[] {
+  const exif = 'exif' in item ? item.exif : null
+  const ext = item.filename.split('.').pop()?.toUpperCase()
+  const rows: (DetailRow | null)[] = [
+    { label: 'Type', value: item.type.charAt(0).toUpperCase() + item.type.slice(1) },
+    ext ? { label: 'Format', value: ext } : null,
+    item.metadata.resolution ? { label: 'Resolution', value: item.metadata.resolution } : null,
+    item.metadata.aspectRatio ? { label: 'Aspect ratio', value: item.metadata.aspectRatio } : null,
+    item.sizeBytes ? { label: 'Size', value: formatBytes(item.sizeBytes) } : null,
+    item.durationSec ? { label: 'Duration', value: formatDuration(item.durationSec) } : null,
+    item.createdAt ? { label: 'Created At', value: relativeTime(item.createdAt) } : null,
+    item.uploadedBy ? { label: 'Person', value: item.uploadedBy } : null,
+    item.version && item.version > 1 ? { label: 'Version', value: `v${item.version}` } : null,
+    exif?.location ? { label: 'Location', value: exif.location } : null,
+    exif?.camera ? { label: 'Camera', value: exif.camera } : null,
+    exif?.lens ? { label: 'Lens', value: exif.lens } : null,
+    exif?.shutter ? { label: 'Shutter', value: exif.shutter } : null,
+    exif?.iso ? { label: 'ISO', value: String(exif.iso) } : null,
+    exif?.colorProfile ? { label: 'Color Profile', value: exif.colorProfile } : null,
+  ]
+  return rows.filter((row): row is DetailRow => row !== null)
 }
 
 /** "3:4" -> "3 / 4"; falls back to portrait 3 / 4. */
