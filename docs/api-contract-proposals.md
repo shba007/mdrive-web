@@ -99,7 +99,16 @@ Access details (`GET /api/access` or the existing check) gains `"role": "client"
 
 ## Not proposed yet
 
-Storage migration wizard: needs its own design pass (providers, integrity checks, duplicates). Suggest a separate scoping session.
+Duplicates review, assign project and file-name preview (Figma "Setup 2e to 2g"): need their own contract once the migration endpoints below exist.
+
+## Cycle 9: Storage migration (proposal; the web UI is mocked against `src/api/migration.ts` until this exists)
+
+The first-run setup wizard collects a plan `{ source, destination, kinds }`. Providers: `r2 | s3 | gdrive | local` (`local` is a browser-side upload, so it may not need the server). Kinds: `photos | videos | audio | documents`.
+
+- `POST /api/storage/migrations` body `{ "source": "s3", "destination": "r2", "kinds": ["photos"] }` returns 202 `{ "id": "<id>", "estimate": { "files": 480, "bytes": 123 } }`. Preview of the same plan can be a `dryRun: true` flag returning only the estimate.
+- `GET /api/storage/migrations/:id` returns `{ "state": "running|paused|done|failed", "moved": 4032, "verified": 3980, "failed": 0, "total": 9840 }`; the UI polls it like the upload batch.
+- `DELETE /api/storage/migrations/:id` cancels. Files are copied, never removed from the source.
+- Open questions: credentials for S3 and Google Drive (OAuth or keys, stored where?), where the copy runs (a worker), and whether `local` should reuse the upload endpoints.
 
 ## Decisions needed from you
 

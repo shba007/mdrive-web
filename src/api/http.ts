@@ -53,6 +53,7 @@ export async function request<T>(path: string, options: RequestOptions = {}): Pr
   const headers: Record<string, string> = {
     'x-api-key': access.apiKey,
     'x-org-id': access.organizationId,
+    'x-user-id': access.userId,
   }
   const init: RequestInit = { method, signal, headers }
   if (body !== undefined) {

@@ -12,7 +12,7 @@ describe('request', () => {
 
   afterEach(() => vi.unstubAllGlobals())
 
-  it('sends the api key and organization headers', async () => {
+  it('sends the api key, organization and user headers', async () => {
     const fetchMock = vi.fn<(...args: unknown[]) => Promise<Response>>(
       async () => new Response(JSON.stringify({ ok: true }), { status: 200 }),
     )
@@ -20,7 +20,11 @@ describe('request', () => {
     await request('/projects', { query: { status: 'Shoot', search: '' } })
     const [url, init] = fetchMock.mock.calls[0] as [string, RequestInit]
     expect(url).toBe('/api/projects?status=Shoot')
-    expect(init.headers).toMatchObject({ 'x-api-key': 'secret', 'x-org-id': 'org-1' })
+    expect(init.headers).toMatchObject({
+      'x-api-key': 'secret',
+      'x-org-id': 'org-1',
+      'x-user-id': 'u',
+    })
   })
 
   it('signals unauthorized on 401 and 403', async () => {
